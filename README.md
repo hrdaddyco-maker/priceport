@@ -2,7 +2,9 @@
 
 Prices for games, apps and subscriptions differ by country. A VPN lets you *see* those regional prices; Priceport does that region-hopping for you from public, keyless sources, converts everything to your currency, ranks countries cheapest-first, and explains (with AI) whether the cheaper price is actually usable from abroad.
 
-Live: https://priceport.onrender.com
+Live: https://br-wispy-sound-bdzy0uwd-priceport.compute.c-8.us-east-2.aws.neon.tech/ (Neon Function, `index.mjs`).
+
+Render: `server.js` is the same app as a plain Node server (start command `node server.js`), ready for a Render free web service once the workspace's free hours reset.
 
 ## Live price sources (no API keys)
 | Store | How | Countries |

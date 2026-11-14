@@ -38,6 +38,7 @@ async function search(q) {
   status('Reading your request…');
   try {
     const r = await api('/api/ask?q=' + encodeURIComponent(q));
+    if (r.intent.home && r.intent.home !== HOME && META?.countries.some(c => c.code === r.intent.home)) { HOME = r.intent.home; localStorage.setItem('pp_home', HOME); $('#home').value = HOME; }
     let html = r.notLive ? `<div class="notlive"><b>Heads-up:</b> ${esc(r.notLive)}</div>` : '';
     if (!r.candidates.length) { status(''); $('#picker').hidden = false; $('#picker').innerHTML = html + `<div class="empty">No matches on Steam, the Microsoft Store, the App Store or Spotify for “${esc(r.intent.term)}”. Try the product's exact name.</div>`; return; }
     html += `<h3>${r.intent.via === 'ai' ? 'AI read this as' : 'Searching for'} “${esc(r.intent.term)}”${r.intent.plan ? ' · ' + esc(r.intent.plan) : ''}. Pick the exact product</h3><div class="cands">` +
