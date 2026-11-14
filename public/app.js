@@ -139,7 +139,7 @@ async function suggestTunnel(rows) {
 
 const explained = new Map();
 async function explain(d, planObj, rows, best, homeRow, saving, pct) {
-  const cur = homeCur(), key = [d.item.store, d.item.id, planObj.id, HOME].join('|');
+  const cur = homeCur(), key = [d.item.store, d.item.id, planObj.id, HOME, rows.length, best.cc].join('|');
   const ctx = { title: d.item.title, store: d.item.store, plan: planObj.name, homeCountry: cname(HOME), homeCurrency: cur,
     cheapest: { country: cname(best.cc), local: best.text, converted: money(best.home, cur) },
     home: homeRow ? { country: cname(HOME), local: homeRow.text, converted: money(homeRow.home, cur) } : null,
