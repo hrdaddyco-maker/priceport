@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Priceport — the AI VPN for better deals</title>
+<meta name="description" content="See what games, apps and subscriptions really cost in 49 countries, ranked cheapest-first in your currency — and whether the cheaper regional price actually works for you.">
+<link rel="icon" href="/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap top-in">
+    <a class="brand" href="/" aria-label="Priceport home"><img src="/logo.svg" alt="" width="30" height="30"><span>Priceport</span></a>
+    <nav class="nav">
+      <a href="#search" data-tab="search" class="on">Search</a>
+      <a href="#watch" data-tab="watch">Watch <b id="watchBadge" class="badge" hidden></b></a>
+      <a href="#vpns" data-tab="vpns">VPNs</a>
+      <a href="#how" data-tab="how">How it works</a>
+    </nav>
+    <label class="home-pick" title="Your home country and currency">
+      <span>Home</span>
+      <select id="home"></select>
+    </label>
+  </div>
+</header>
+
+<main>
+  <section id="tab-search" class="tab">
+    <div class="hero">
+      <div class="wrap">
+        <p class="eyebrow"><span class="dot"></span> AI VPN for better deals · live prices from 49 countries</p>
+        <h1>Same subscription.<br><em>Different price</em> in every country.</h1>
+        <p class="lede">Ask in plain English. Priceport checks the official stores region by region, the way you would by hopping VPN servers, ranks the cheapest countries in your currency, and tells you whether the deal actually works.</p>
+        <form id="form" class="search" autocomplete="off">
+          <svg viewBox="0 0 24 24" class="ico" aria-hidden="true"><path d="M10.5 3a7.5 7.5 0 0 1 5.92 12.1l4.24 4.24-1.42 1.42-4.24-4.24A7.5 7.5 0 1 1 10.5 3Zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11Z"/></svg>
+          <input id="q" name="q" placeholder="e.g. cheapest Spotify Family, or is Elden Ring cheaper somewhere?" aria-label="What do you want cheaper?">
+          <button id="go" type="submit">Find deals</button>
+        </form>
+        <div class="chips" id="chips"></div>
+        <div class="stores"><span>Live sources:</span> Steam · Xbox &amp; Microsoft Store · Apple App Store · Spotify</div>
+      </div>
+    </div>
+
+    <div class="wrap">
+      <div id="status" class="status" hidden></div>
+      <div id="picker" class="picker" hidden></div>
+      <div id="result" hidden></div>
+    </div>
+  </section>
+
+  <section id="tab-watch" class="tab wrap" hidden>
+    <h2 class="sec-title">Watch list</h2>
+    <p class="muted">Watched items are saved on this device. Every time you open Priceport we recheck them and flag any price that dropped.</p>
+    <div id="watchList"></div>
+  </section>
+
+  <section id="tab-vpns" class="tab wrap" hidden>
+    <h2 class="sec-title">VPN to use</h2>
+    <p class="muted">You only need a VPN to <em>browse</em> another region's store. Priceport already does the browsing for you. Ranked by independent audits, open-source apps, privacy-friendly sign-up and country coverage. No affiliate links, no sponsorships.</p>
+    <ol id="vpnList" class="vpns"></ol>
+  </section>
+
+  <section id="tab-how" class="tab wrap" hidden>
+    <h2 class="sec-title">How it works</h2>
+    <div class="how">
+      <div class="card"><b>1. You ask</b><p>Type something like "cheapest Spotify family" or "is Cyberpunk cheaper somewhere". The AI turns it into a store lookup. Common ones like Spotify or Game Pass skip the AI and go straight to the store.</p></div>
+      <div class="card"><b>2. We check every region</b><p>Real prices from the stores themselves: the Steam store API per country, the Microsoft Store catalogue per market, Apple's App Store per storefront (including in-app subscriptions), and Spotify's official Premium pages. Nothing is estimated.</p></div>
+      <div class="card"><b>3. Ranked in your money</b><p>Every price is converted at today's exchange rate from open.er-api.com, ranked cheapest first, and compared with your home country.</p></div>
+      <div class="card"><b>4. The honest part</b><p>For each store we explain what it takes to actually pay that price (local card, gift card, account region) and the risk. The AI writes a short verdict.</p></div>
+    </div>
+    <div class="honest big" id="honest2"></div>
+    <p class="muted small">Not covered live: Netflix, YouTube Premium and Disney+ only show prices to visitors physically in each country, with no public feed, so we don't guess them. Google Play doesn't expose regional prices without signing in.</p>
+  </section>
+</main>
+
+<nav class="mnav" aria-label="Sections">
+  <a href="#search" data-tab="search" class="on">Search</a>
+  <a href="#watch" data-tab="watch">Watch <b class="badge mbadge" hidden></b></a>
+  <a href="#vpns" data-tab="vpns">VPNs</a>
+  <a href="#how" data-tab="how">How</a>
+</nav>
+<footer class="foot">
+  <div class="wrap">
+    <p><b>Priceport</b> compares public list prices. Prices can change at checkout (taxes, promos). Not affiliated with any store. <span id="fxNote"></span></p>
+  </div>
+</footer>
+<template id="honestT"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 1 21h22L12 2Zm0 6 1 7h-2l1-7Zm0 9a1.2 1.2 0 1 1 0 2.4A1.2 1.2 0 0 1 12 17Z"/></svg><div><b>Read before you buy.</b> Using a VPN to buy at another country's price often breaks a store's terms of service. The store can flag or suspend the account, cancel the subscription, or revoke games and apps you bought. Most stores also need a payment method or gift card from that country. Priceport shows public prices and doesn't help bypass payment checks.</div></template>
+<script src="/app.js"></script>
+</body>
+</html>
