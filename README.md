@@ -13,9 +13,12 @@ Render: `server.js` is the same app as a plain Node server (start command `node 
 | Xbox / Microsoft Store (Game Pass, Xbox games) | `displaycatalog.mp.microsoft.com/v7.0/products?bigIds=ID&market=XX`, search via `productFamilies/autosuggest` | where sold |
 | Apple App Store | iTunes Lookup API `?id=ID&country=xx` (app price) + public `apps.apple.com/xx/app/idID` pages ("Top In-App Purchases" for subscription tiers like ChatGPT Plus) | 49 storefronts |
 | Spotify | official `spotify.com/<country>/premium/` pages (Next.js data) | ~40 |
+| Google Play | public app page `?gl=XX` (embedded micros + currency) | 49 |
+| Netflix | Help Center 'Plans and Pricing' page loaded **through free proxies in each country** (proxifly/free-proxy-list, clarketm/proxy-list, proxyscrape free list), exit country verified via Cloudflare trace, TLS end-to-end | ~23 tried, about half succeed per run |
+| Free tunnels for users | VPN Gate public API `vpngate.net/api/iphone` → per-country OpenVPN profiles | whatever volunteers run |
 | FX | `open.er-api.com/v6/latest/USD` (fallback `api.frankfurter.app`) | — |
 
-Not live (no public per-country feed without a real exit IP / sign-in): Netflix, YouTube Premium, Disney+, Google Play.
+Not live: YouTube Premium, Disney+ (prices only shown to signed-in users). Set `GEO_PROXIES=0` to turn the free-proxy path off. See `vpn/` for free tunnels (VPN Gate, Tor, WARP, Proton) and an optional WireGuard exit-node installer.
 
 ## AI
 Keyless Pollinations by default (`https://text.pollinations.ai/openai`). Swap with env vars:

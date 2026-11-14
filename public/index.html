@@ -15,7 +15,7 @@
     <nav class="nav">
       <a href="#search" data-tab="search" class="on">Search</a>
       <a href="#watch" data-tab="watch">Watch <b id="watchBadge" class="badge" hidden></b></a>
-      <a href="#vpns" data-tab="vpns">VPNs</a>
+      <a href="#tunnels" data-tab="tunnels">Tunnels</a>
       <a href="#how" data-tab="how">How it works</a>
     </nav>
     <label class="home-pick" title="Your home country and currency">
@@ -38,7 +38,7 @@
           <button id="go" type="submit">Find deals</button>
         </form>
         <div class="chips" id="chips"></div>
-        <div class="stores"><span>Live sources:</span> Steam · Xbox &amp; Microsoft Store · Apple App Store · Spotify</div>
+        <div class="stores"><span>Live sources:</span> Steam · Xbox &amp; Microsoft Store · Apple App Store · Google Play · Spotify · Netflix (via free tunnels)</div>
       </div>
     </div>
 
@@ -55,9 +55,15 @@
     <div id="watchList"></div>
   </section>
 
-  <section id="tab-vpns" class="tab wrap" hidden>
-    <h2 class="sec-title">VPN to use</h2>
-    <p class="muted">You only need a VPN to <em>browse</em> another region's store. Priceport already does the browsing for you. Ranked by independent audits, open-source apps, privacy-friendly sign-up and country coverage. No affiliate links, no sponsorships.</p>
+  <section id="tab-tunnels" class="tab wrap" hidden>
+    <h2 class="sec-title">Free tunnels by country</h2>
+    <p class="muted">Real VPN servers you can use for free, from <a href="https://www.vpngate.net/en/" target="_blank" rel="noopener">VPN Gate</a>, the University of Tsukuba's volunteer network. Download a profile for a country and open it in the free <b>OpenVPN Connect</b> app (iPhone, Android, Mac, Windows). Servers come and go. This list refreshes every 30 minutes.</p>
+    <div id="tunnelList" class="tunnels"><div class="status"><span class="spin"></span><span>Loading the live server list…</span></div></div>
+    <h2 class="sec-title">How Priceport sees other countries</h2>
+    <p class="muted">No servers of our own and nothing rented. Every price is labelled with the method that fetched it.</p>
+    <div id="methodList" class="how"></div>
+    <h2 class="sec-title">Or use a regular VPN</h2>
+    <p class="muted">Ranked by independent audits, open-source apps, privacy-friendly sign-up and country coverage. No affiliate links.</p>
     <ol id="vpnList" class="vpns"></ol>
   </section>
 
@@ -65,19 +71,19 @@
     <h2 class="sec-title">How it works</h2>
     <div class="how">
       <div class="card"><b>1. You ask</b><p>Type something like "cheapest Spotify family" or "is Cyberpunk cheaper somewhere". The AI turns it into a store lookup. Common ones like Spotify or Game Pass skip the AI and go straight to the store.</p></div>
-      <div class="card"><b>2. We check every region</b><p>Real prices from the stores themselves: the Steam store API per country, the Microsoft Store catalogue per market, Apple's App Store per storefront (including in-app subscriptions), and Spotify's official Premium pages. Nothing is estimated.</p></div>
+      <div class="card"><b>2. We check every region</b><p>Real prices straight from the stores: the Steam API, the Microsoft Store catalogue, Apple&#39;s App Store (including in-app subscriptions) and Google Play, each queried per country, plus Spotify&#39;s country pages. Netflix only shows prices to people inside each country, so we load its pricing page through free proxies that we have confirmed are in that country. Nothing is estimated.</p></div>
       <div class="card"><b>3. Ranked in your money</b><p>Every price is converted at today's exchange rate from open.er-api.com, ranked cheapest first, and compared with your home country.</p></div>
       <div class="card"><b>4. The honest part</b><p>For each store we explain what it takes to actually pay that price (local card, gift card, account region) and the risk. The AI writes a short verdict.</p></div>
     </div>
     <div class="honest big" id="honest2"></div>
-    <p class="muted small">Not covered live: Netflix, YouTube Premium and Disney+ only show prices to visitors physically in each country, with no public feed, so we don't guess them. Google Play doesn't expose regional prices without signing in.</p>
+    <p class="muted small">Not covered yet: YouTube Premium and Disney+ only show prices to signed-in visitors, so we don&#39;t guess them.</p>
   </section>
 </main>
 
 <nav class="mnav" aria-label="Sections">
   <a href="#search" data-tab="search" class="on">Search</a>
   <a href="#watch" data-tab="watch">Watch <b class="badge mbadge" hidden></b></a>
-  <a href="#vpns" data-tab="vpns">VPNs</a>
+  <a href="#tunnels" data-tab="tunnels">Tunnels</a>
   <a href="#how" data-tab="how">How</a>
 </nav>
 <footer class="foot">

@@ -1,7 +1,7 @@
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 let META = null, HOME = localStorage.getItem('pp_home') || 'CA', CUR = null, ACTIVE = null;
-const EX = ['Cheapest Spotify Family', 'Is Elden Ring cheaper somewhere?', 'Xbox Game Pass Ultimate', 'ChatGPT Plus', 'Cyberpunk 2077', 'Procreate Dreams', 'Duolingo Super'];
+const EX = ['Cheapest Netflix Premium', 'Cheapest Spotify Family', 'Is Elden Ring cheaper somewhere?', 'Xbox Game Pass Ultimate', 'ChatGPT Plus', 'Cyberpunk 2077', 'Minecraft Android', 'Duolingo Super'];
 const flag = cc => `<img class="flag" src="https://flagcdn.com/w40/${cc.toLowerCase()}.png" alt="" loading="lazy">`;
 const cname = cc => META?.countries.find(c => c.code === cc)?.name || cc;
 const homeCur = () => META?.countries.find(c => c.code === HOME)?.currency || 'CAD';
@@ -20,16 +20,18 @@ async function init() {
   $('#home').innerHTML = META.countries.slice().sort((a, b) => a.name.localeCompare(b.name)).map(c => `<option value="${c.code}" ${c.code === HOME ? 'selected' : ''}>${esc(c.name)} · ${c.currency}</option>`).join('');
   $('#home').onchange = () => { HOME = $('#home').value; localStorage.setItem('pp_home', HOME); if (ACTIVE) render(); renderWatch(); };
   $('#vpnList').innerHTML = META.vpns.map(v => `<li><div><b>${esc(v.name)}</b><p>${esc(v.why)}</p></div><a class="btn" href="${v.url}" target="_blank" rel="noopener">Visit site</a></li>`).join('');
+  $('#methodList').innerHTML = META.methods.map(m => `<div class="card"><b>${esc(m.name)}</b> <span class="mtag">${esc(m.tag)}</span><p>${esc(m.how)}</p><p><b>Status:</b> ${esc(m.status)}</p></div>`).join('');
   if (META.fx) $('#fxNote').textContent = `Exchange rates: ${META.fx.source}, updated ${META.fx.updated}.`;
   const q = new URLSearchParams(location.search).get('q'); if (q) { $('#q').value = q; search(q); }
   checkWatches();
 }
 function route() {
   const t = (location.hash.slice(1) || 'search').split('?')[0];
-  const tab = ['search', 'watch', 'vpns', 'how'].includes(t) ? t : 'search';
+  const tab = ['search', 'watch', 'tunnels', 'how'].includes(t) ? t : (t === 'vpns' ? 'tunnels' : 'search');
   document.querySelectorAll('.tab').forEach(s => s.hidden = s.id !== 'tab-' + tab);
   document.querySelectorAll('[data-tab]').forEach(a => a.classList.toggle('on', a.dataset.tab === tab));
   if (tab === 'watch') renderWatch();
+  if (tab === 'tunnels') renderTunnels();
 }
 
 async function search(q) {
@@ -59,10 +61,26 @@ async function load(c) {
     if (c.plan) { const h = c.plan.toLowerCase(); const m = d.plans.find(p => p.id.toLowerCase() === h || p.id.toLowerCase().includes(h) || p.name.toLowerCase().includes(h)); if (m) plan = m.id; }
     ACTIVE = { c, d, plan, showAll: false };
     status(''); render();
+    if (d.pending) poll(c, 0);
     $('#result').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (e) { status('Could not load prices: ' + esc(e.message), true); }
 }
 
+async function poll(c, n) {
+  await new Promise(r => setTimeout(r, 9000));
+  if (!ACTIVE || ACTIVE.c !== c || n > 25) return;
+  try { const d = await api(`/api/prices?store=${c.store}&id=${encodeURIComponent(c.id)}`); if (ACTIVE.c !== c) return; ACTIVE.d = d; if (!d.plans.find(p => p.id === ACTIVE.plan)) ACTIVE.plan = d.plans[0].id; render(); if (d.pending) poll(c, n + 1); } catch { poll(c, n + 1); }
+}
+let TUN = null;
+function tunnels() { if (!TUN) TUN = api('/api/tunnels').catch(e => { TUN = null; throw e; }); return TUN; }
+async function renderTunnels() {
+  const el = $('#tunnelList');
+  try {
+    const t = await tunnels(), want = new URLSearchParams(location.hash.split('?')[1] || '').get('cc');
+    el.innerHTML = t.countries.map(c => `<div class="tcard ${c.country === want ? 'hl' : ''}" id="t-${c.country}"><div class="th">${flag(c.country)} ${esc(cname(c.country) === c.country ? c.name : cname(c.country))}<small>${c.count} server${c.count > 1 ? 's' : ''}</small></div><ul>${c.best.map(s => `<li>${s.speedMbps} Mbps · ${s.ping || '?'} ms · up ${s.uptimeDays}d <a href="/api/tunnels/config?ip=${encodeURIComponent(s.ip)}">.ovpn ↓</a></li>`).join('')}</ul></div>`).join('') + `<p class="muted small" style="grid-column:1/-1">${t.total} volunteer servers online · checked ${new Date(t.at).toLocaleString()}</p>`;
+    if (want) document.getElementById('t-' + want)?.scrollIntoView({ block: 'center' });
+  } catch (e) { el.innerHTML = `<div class="status err">VPN Gate's list couldn't be loaded right now (${esc(e.message)}).</div>`; }
+}
 function computeRows(d, plan) {
   const rows = d.rows.filter(r => r.plan === plan).map(r => ({ ...r, home: conv(r.amount, r.currency, d.fx) })).filter(r => r.home != null && r.home > 0).sort((a, b) => a.home - b.home);
   // Guard against a store label we misread (e.g. abbreviated "349rb"): drop anything below 8% of the median.
@@ -81,6 +99,7 @@ function render() {
   el.innerHTML = `<div class="panel">
     <div class="p-head">${d.item.image ? `<img src="${esc(d.item.image)}" alt="">` : ''}<div><h2>${esc(d.item.title)}</h2><div class="meta">${esc(d.item.kind || '')} · ${rows.length} countries priced · prices in ${cur}</div></div>
       <div class="actions"><button class="ghost ${watched ? 'on' : ''}" id="watchBtn">${watched ? '★ Watching' : '☆ Watch price'}</button><button class="ghost" id="shareBtn">Copy link</button></div></div>
+    ${d.pending ? `<div class="pendingbar" style="margin-top:14px"><span class="spin"></span><span>Loading more countries through free proxy tunnels: ${Object.values(d.status || {}).filter(x => x !== 'pending').length} of ${Object.keys(d.status || {}).length} tried. Results appear as they arrive.</span></div>` : ''}
     ${d.plans.length > 1 ? `<div class="plans">${d.plans.map(p => `<button class="plan ${p.id === plan ? 'on' : ''}" data-p="${esc(p.id)}">${esc(p.name)}</button>`).join('')}</div>` : ''}
     ${!best ? `<div class="empty" style="margin:18px 22px">No prices found for this ${d.plans.length > 1 ? 'plan' : 'item'} in the countries we check.${d.item.kind === 'App' ? ' It may be a free app with no listed in-app prices.' : ''}</div>` : `
     <div class="summary">
@@ -92,9 +111,10 @@ function render() {
       <div class="box"><h4>Verdict <span class="ai-tag" id="aiTag">AI</span></h4><div id="ai"><div class="skel" style="width:95%"></div><div class="skel" style="width:88%"></div><div class="skel" style="width:70%"></div></div></div>
       <div class="box"><h4>Does it work from abroad? <span class="pill ${esc(d.rule?.works)}">${esc(d.rule?.works || '')}</span></h4><p>${esc(d.rule?.text || '')}</p><p style="margin-top:8px"><b>To pay:</b> ${esc(d.rule?.pay || '')}</p></div>
     </div>
+    <div class="tunnel-box" id="tunBox"><span>Checking which free tunnel gets you closest to the cheapest price…</span></div>
     <div class="honest">${$('#honestT').innerHTML}</div>
     <table class="tbl"><thead><tr><th>#</th><th>Country</th><th class="num hide-s">Local price</th><th class="num">In ${cur}</th><th class="num">vs home</th><th class="num hide-s">Store</th></tr></thead><tbody>
-    ${shown.map(r => { const i = rows.indexOf(r) + 1, dlt = homeRow ? (r.home - homeRow.home) / homeRow.home * 100 : null; return `<tr class="${r.cc === HOME ? 'home' : ''}"><td class="rank">${i}</td><td><span class="ctry">${flag(r.cc)}<b>${esc(cname(r.cc))}</b></span><div class="bar"><i style="width:${Math.max(4, r.home / max * 100).toFixed(1)}%"></i></div></td><td class="num hide-s">${esc(r.text)}${r.discount ? ` <small class="delta neg">-${r.discount}%</small>` : ''}</td><td class="num"><b>${money(r.home, cur)}</b></td><td class="num delta ${dlt < -0.5 ? 'neg' : 'pos'}">${dlt == null ? '—' : r.cc === HOME ? 'home' : (dlt > 0 ? '+' : '') + Math.round(dlt) + '%'}</td><td class="num hide-s"><a class="open" href="${esc(r.url)}" target="_blank" rel="noopener">Open ↗</a></td></tr>`; }).join('')}
+    ${shown.map(r => { const i = rows.indexOf(r) + 1, dlt = homeRow ? (r.home - homeRow.home) / homeRow.home * 100 : null; return `<tr class="${r.cc === HOME ? 'home' : ''}"><td class="rank">${i}</td><td><span class="ctry">${flag(r.cc)}<b>${esc(cname(r.cc))}</b>${r.method && r.method !== 'store-param' ? `<span class="mtag">${esc(r.method)}</span>` : ''}</span><div class="bar"><i style="width:${Math.max(4, r.home / max * 100).toFixed(1)}%"></i></div></td><td class="num hide-s">${esc(r.text)}${r.discount ? ` <small class="delta neg">-${r.discount}%</small>` : ''}</td><td class="num"><b>${money(r.home, cur)}</b></td><td class="num delta ${dlt < -0.5 ? 'neg' : 'pos'}">${dlt == null ? '—' : r.cc === HOME ? 'home' : (dlt > 0 ? '+' : '') + Math.round(dlt) + '%'}</td><td class="num hide-s"><a class="open" href="${esc(r.url)}" target="_blank" rel="noopener">Open ↗</a></td></tr>`; }).join('')}
     </tbody></table>
     ${rows.length > shown.length ? `<button class="more" id="moreBtn">Show all ${rows.length} countries</button>` : ''}`}
     <div class="src">Source: <a href="${esc(d.sourceUrl)}" target="_blank" rel="noopener">${esc(d.source)}</a> · last checked ${new Date(d.checkedAt).toLocaleString()} · FX: ${esc(d.fx.source)} (${esc(d.fx.updated)})${planObj.note ? ' · ' + esc(planObj.note) : ''}</div>
@@ -103,7 +123,18 @@ function render() {
   $('#moreBtn') && ($('#moreBtn').onclick = () => { ACTIVE.showAll = true; render(); });
   $('#watchBtn').onclick = () => toggleWatch(best, planObj);
   $('#shareBtn').onclick = () => { navigator.clipboard?.writeText(location.href); $('#shareBtn').textContent = 'Copied'; };
-  if (best) explain(d, planObj, rows, best, homeRow, saving, pct);
+  if (best) { explain(d, planObj, rows, best, homeRow, saving, pct); suggestTunnel(rows); }
+}
+async function suggestTunnel(rows) {
+  const box = $('#tunBox'); if (!box) return;
+  try {
+    const t = await tunnels(); const have = new Map(t.countries.map(c => [c.country, c]));
+    if (!$('#tunBox')) return;
+    const pick = rows.find(r => have.has(r.cc)), cheapest = rows[0];
+    if (!pick) { box.innerHTML = `<span>No free VPN Gate server in any of these countries right now. Use a regular VPN with a server in <b>${esc(cname(cheapest.cc))}</b>.</span><a class="btn" href="#tunnels">See VPNs</a>`; return; }
+    const rank = rows.indexOf(pick) + 1, n = have.get(pick.cc).count;
+    box.innerHTML = `<span><b>Tunnel suggestion:</b> ${pick === cheapest ? `the cheapest country, <b>${esc(cname(pick.cc))}</b>, has` : `<b>${esc(cname(cheapest.cc))}</b> has no free server right now. The cheapest country that does is <b>${esc(cname(pick.cc))}</b> (#${rank}, ${money(pick.home, homeCur())}), with`} ${n} free VPN Gate server${n > 1 ? 's' : ''}.</span><a class="btn" href="#tunnels?cc=${pick.cc}">Get a free ${esc(pick.cc)} tunnel</a>`;
+  } catch { box.remove(); }
 }
 
 const explained = new Map();
@@ -114,6 +145,7 @@ async function explain(d, planObj, rows, best, homeRow, saving, pct) {
     home: homeRow ? { country: cname(HOME), local: homeRow.text, converted: money(homeRow.home, cur) } : null,
     saving: Math.round(saving * 100) / 100, savingText: money(saving, cur), savingPct: pct,
     nextCheapest: rows.slice(1, 5).map(r => ({ country: cname(r.cc), converted: money(r.home, cur) })), rule: d.rule };
+  try { const t = await tunnels(); const have = new Set(t.countries.map(c => c.country)); ctx.freeTunnelCountriesAmongCheapest = rows.slice(0, 15).filter(r => have.has(r.cc)).map(r => cname(r.cc)); } catch { }
   let out = explained.get(key);
   if (!out) { try { out = await api('/api/explain', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(ctx) }); explained.set(key, out); } catch { out = { text: 'AI verdict unavailable right now. The ranking and rules here still apply.', via: 'rules' }; } }
   if (!ACTIVE || ACTIVE.d !== d || ACTIVE.plan !== planObj.id) return;
